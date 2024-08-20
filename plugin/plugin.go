@@ -13,7 +13,7 @@ import (
 
 const (
 	Version  = "0.2"
-	Priority = 1400
+	Priority = 13
 )
 
 type Config interface {
