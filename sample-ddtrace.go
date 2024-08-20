@@ -31,6 +31,8 @@ func main() {
 
 	l.Error("erro_1")
 
+	l.Info("info_1")
+
 	ctor := func() interface{} { return plugin.NewPlugin(l) }
 	err := server.StartServer(ctor, plugin.Version, plugin.Priority)
 	if err != nil {

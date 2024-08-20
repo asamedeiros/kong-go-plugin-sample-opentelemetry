@@ -38,7 +38,11 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 
 	c.log.Error(fmt.Sprintf("error_2 - %s", "opa"))
 
+	c.log.Info(fmt.Sprintf("info_2 - %s", "opa"))
+
 	kong.Log.Err("error_kong_1")
+
+	kong.Log.Info("info_kong_1")
 
 	kong.Log.Err("error_kong_2, a: b, f: d")
 
