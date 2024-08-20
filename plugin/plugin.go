@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	_log "log"
+	"strings"
 
 	"github.com/Kong/go-pdk"
 	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/entities"
@@ -51,11 +52,24 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 
 	//c.log.Info(fmt.Sprintf("info_2 - %s", "opa"))
 
+	kong.Log.Debug("debug_kong_2")
+
 	kong.Log.Err("error_kong_2")
 
 	kong.Log.Info("info_kong_2")
 
 	kong.Log.Err(fmt.Sprintf("m_error_kong_2, trace_id: %s", c.m.TraceID.W3C))
+
+	/* tracedata, _ := kong.Nginx.GetCtxString("tracedata")
+	kong.Log.Err(fmt.Sprintf("m_error_kong_2, %s", tracedata)) */
+
+	h, _ := kong.Request.GetHeaders(-1)
+	rHeader := make(map[string]string)
+	for k := range h {
+		rHeader[strings.ToLower(k)] = h[k][0]
+	}
+
+	kong.Log.Info(fmt.Sprintf("mapa_kong_4: %s", rHeader))
 
 	//kong.Log.Err("error_kong_3, a: b, f: d")
 
@@ -111,7 +125,7 @@ func (c *pluginConfig) Log(kong *pdk.PDK) {
 	}
 
 	b, _ := json.Marshal(c.m)
-	kong.Log.Notice("serialize_kong: ", string(b))
+	kong.Log.Info("serialize_kong: ", string(b))
 }
 
 /* func (c *pluginConfig) accessError(kong *pdk.PDK, code int) {
