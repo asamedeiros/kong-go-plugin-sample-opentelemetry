@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	_log "log"
+
 	"github.com/Kong/go-pdk"
 	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/log"
 )
@@ -30,6 +32,8 @@ func NewPlugin(log log.Log) Config {
 // Access is executed for every request from a client
 // and, before it is being proxied to the upstream service.
 func (c *pluginConfig) Access(kong *pdk.PDK) {
+
+	_log.Printf("log_print_1")
 
 	//c.log.Error(fmt.Sprintf("error_2 - %s", "opa"))
 
