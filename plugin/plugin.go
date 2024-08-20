@@ -68,10 +68,11 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 
 	traceid := "unknown"
 	traceparent, _ := kong.Request.GetHeader("traceparent")
+	kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
 	if traceparent != "" {
 		traceid = strings.Split(traceparent, "-")[1]
 	}
-	kong.Log.Err(fmt.Sprintf("by_header_kong_5, trace_id.w3c: %s", traceid))
+	kong.Log.Err(fmt.Sprintf("by_header_kong_5, trace_id: %s", traceid))
 
 	/* n1, err := kong.Ctx.GetSharedString("traceparent")
 	if err == nil {
