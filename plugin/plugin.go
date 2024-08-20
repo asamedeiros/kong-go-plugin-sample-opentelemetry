@@ -1,8 +1,13 @@
 package plugin
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
 
 	"github.com/Kong/go-pdk"
 )
@@ -41,6 +46,23 @@ func NewPlugin() Config {
 // Access is executed for every request from a client
 // and, before it is being proxied to the upstream service.
 func (c *pluginConfig) Access(kong *pdk.PDK) {
+
+	ctx := context.Background()
+	tracer := otel.Tracer("example/main")
+	ctx, span := tracer.Start(ctx, "example")
+	defer span.End()
+
+	log.SetFormatter(&log.JSONFormatter{})
+
+	standardFields := log.Fields{
+		"dd.trace_id": convertTraceID(span.SpanContext().TraceID().String()),
+		"dd.span_id":  convertTraceID(span.SpanContext().SpanID().String()),
+		"dd.service":  "dataplane",
+		"dd.env":      "production",
+		"dd.version":  "otel2023052301",
+	}
+
+	log.WithFields(standardFields).WithContext(ctx).Info("hello world")
 
 	//_log.Printf("log_print_1")
 
@@ -141,6 +163,20 @@ func (c *pluginConfig) Log(kong *pdk.PDK) {
 		kong.Log.Info("serialize_kong: ", string(b)) */
 		kong.Log.Info("serialize_kong: ", str)
 	}
+}
+
+func convertTraceID(id string) string {
+	if len(id) < 16 {
+		return ""
+	}
+	if len(id) > 16 {
+		id = id[16:]
+	}
+	intValue, err := strconv.ParseUint(id, 16, 64)
+	if err != nil {
+		return ""
+	}
+	return strconv.FormatUint(intValue, 10)
 }
 
 /* func (c *pluginConfig) accessError(kong *pdk.PDK, code int) {
