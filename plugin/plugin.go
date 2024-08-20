@@ -71,16 +71,16 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	if traceparent != "" {
 		traceid = strings.Split(traceparent, "-")[1]
 	}
-	kong.Log.Err(fmt.Sprintf("by_header_kong_4, trace_id: %s", traceid))
+	kong.Log.Err(fmt.Sprintf("by_header_kong_5, trace_id: {\"w3c\":\"%s\"}", traceid))
 
 	n1, err := kong.Ctx.GetSharedString("traceparent")
 	if err == nil {
-		kong.Log.Err(fmt.Sprintf("by_shared_kong_4, trace_id: %s", n1))
+		kong.Log.Err(fmt.Sprintf("by_shared_kong_5, trace_id: {\"w3c\":\"%s\"}", n1))
 	}
 
 	n2, err := kong.Nginx.GetCtxAny("tracecontext")
 	if err == nil {
-		kong.Log.Err(fmt.Sprintf("by_ctx_kong_4, trace_id: %s", n2))
+		kong.Log.Err(fmt.Sprintf("by_ctx_kong_5, trace_id: {\"w3c\":\"%s\"}", n2))
 	}
 
 	//kong.Log.Err("error_kong_3, a: b, f: d")
