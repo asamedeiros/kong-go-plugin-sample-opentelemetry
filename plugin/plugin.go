@@ -1,8 +1,6 @@
 package plugin
 
 import (
-	"net/http"
-
 	"github.com/Kong/go-pdk"
 	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/log"
 )
@@ -14,6 +12,7 @@ const (
 
 type Config interface {
 	Access(kong *pdk.PDK)
+	Log(kong *pdk.PDK)
 }
 
 type pluginConfig struct {
@@ -36,9 +35,7 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 
 	//c.log.Info(fmt.Sprintf("info_2 - %s", "opa"))
 
-	str, _ := kong.Log.Serialize()
-
-	kong.Log.Err("error_kong_2: ", str)
+	kong.Log.Err("error_kong_2")
 
 	kong.Log.Info("info_kong_2")
 
@@ -86,7 +83,14 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	//c.accessError(kong, rsl.Status)
 }
 
-func (c *pluginConfig) accessError(kong *pdk.PDK, code int) {
+func (c *pluginConfig) Log(kong *pdk.PDK) {
+
+	str, _ := kong.Log.Serialize()
+
+	kong.Log.Notice("serialize_kong: ", str)
+}
+
+/* func (c *pluginConfig) accessError(kong *pdk.PDK, code int) {
 	headers := make(map[string][]string)
 	if code == http.StatusUnauthorized {
 		kong.Response.AddHeader("X-sample-ddtrace", "Unauthorized")
@@ -95,4 +99,4 @@ func (c *pluginConfig) accessError(kong *pdk.PDK, code int) {
 		kong.Response.AddHeader("X-sample-ddtrace", "Forbidden")
 		kong.Response.Exit(code, []byte("Forbidden"), headers)
 	}
-}
+} */
