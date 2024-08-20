@@ -32,7 +32,9 @@ func main() {
 	//l.Error("erro_1")
 	//l.Info("info_1")
 
-	ctor := func() interface{} { return plugin.NewPlugin() }
+	p := plugin.NewPlugin()
+
+	ctor := func() interface{} { return p }
 	err := server.StartServer(ctor, plugin.Version, plugin.Priority)
 	if err != nil {
 		l.Error(fmt.Errorf("embedded plugin server start error: %w", err))
