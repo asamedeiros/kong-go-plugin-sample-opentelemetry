@@ -69,12 +69,12 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	//kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
 
 	traceid := "unknown"
-	spanid := "unknown"
+	//spanid := "unknown"
 	if traceparent != "" {
 		traceid = strings.Split(traceparent, "-")[1]
-		spanid = strings.Split(traceparent, "-")[2]
+		//spanid = strings.Split(traceparent, "-")[2]
 	}
-	kong.Log.Err(fmt.Sprintf("by_header_kong_5, trace_id: %s, dd.span_id: %s", traceid, spanid))
+	kong.Log.Err(fmt.Sprintf("by_header_kong_5, trace_id: %s", traceid))
 
 	/* n1, err := kong.Ctx.GetSharedString("traceparent")
 	if err == nil {
