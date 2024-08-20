@@ -29,11 +29,10 @@ func main() {
 	l := setupLog()
 	defer syncLog(l)
 
-	l.Error("erro_1")
+	//l.Error("erro_1")
+	//l.Info("info_1")
 
-	l.Info("info_1")
-
-	ctor := func() interface{} { return plugin.NewPlugin(l) }
+	ctor := func() interface{} { return plugin.NewPlugin() }
 	err := server.StartServer(ctor, plugin.Version, plugin.Priority)
 	if err != nil {
 		l.Error(fmt.Errorf("embedded plugin server start error: %w", err))
