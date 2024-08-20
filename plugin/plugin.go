@@ -96,7 +96,8 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 		traceid = strings.Split(traceparent, "-")[1]
 		//spanid = strings.Split(traceparent, "-")[2]
 	}
-	kong.Log.Err(fmt.Sprintf("by_header_kong_5, trace_id: %s", traceid))
+
+	kong.Log.Err(fmt.Sprintf("by_header_kong_5, namespace: %s, trace_id: %s", "sample-ddtrace", traceid))
 
 	/* n1, err := kong.Ctx.GetSharedString("traceparent")
 	if err == nil {
