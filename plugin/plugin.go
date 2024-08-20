@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"fmt"
-	_log "log"
 	"strings"
 
 	"github.com/Kong/go-pdk"
@@ -43,7 +42,7 @@ func NewPlugin() Config {
 // and, before it is being proxied to the upstream service.
 func (c *pluginConfig) Access(kong *pdk.PDK) {
 
-	_log.Printf("log_print_1")
+	//_log.Printf("log_print_1")
 
 	//c.log.Error(fmt.Sprintf("error_2 - %s", "opa"))
 
@@ -66,13 +65,16 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 		rHeader[strings.ToLower(k)] = h[k][0]
 	} */
 
-	traceid := "unknown"
 	traceparent, _ := kong.Request.GetHeader("traceparent")
-	kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
+	//kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
+
+	traceid := "unknown"
+	spanid := "unknown"
 	if traceparent != "" {
 		traceid = strings.Split(traceparent, "-")[1]
+		spanid = strings.Split(traceparent, "-")[2]
 	}
-	kong.Log.Err(fmt.Sprintf("by_header_kong_5, trace_id: %s", traceid))
+	kong.Log.Err(fmt.Sprintf("by_header_kong_5, dd.trace_id: %s, dd.span_id: %s", traceid, spanid))
 
 	/* n1, err := kong.Ctx.GetSharedString("traceparent")
 	if err == nil {
