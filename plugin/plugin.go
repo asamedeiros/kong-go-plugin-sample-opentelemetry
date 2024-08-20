@@ -1,13 +1,9 @@
 package plugin
 
 import (
-	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/Kong/go-pdk"
-	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/entities"
 	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/log"
 )
 
@@ -36,19 +32,21 @@ func NewPlugin(log log.Log) Config {
 // and, before it is being proxied to the upstream service.
 func (c *pluginConfig) Access(kong *pdk.PDK) {
 
-	c.log.Error(fmt.Sprintf("error_2 - %s", "opa"))
+	//c.log.Error(fmt.Sprintf("error_2 - %s", "opa"))
 
-	c.log.Info(fmt.Sprintf("info_2 - %s", "opa"))
+	//c.log.Info(fmt.Sprintf("info_2 - %s", "opa"))
 
-	kong.Log.Err("error_kong_1")
+	str, _ := kong.Log.Serialize()
 
-	kong.Log.Info("info_kong_1")
+	kong.Log.Err("error_kong_2: ", str)
 
-	kong.Log.Err("error_kong_2, a: b, f: d")
+	kong.Log.Info("info_kong_2")
+
+	//kong.Log.Err("error_kong_3, a: b, f: d")
 
 	//c.accessError(kong, 401)
 
-	h, _ := kong.Request.GetHeaders(-1)
+	/* h, _ := kong.Request.GetHeaders(-1)
 	rHeader := make(map[string]string)
 	for k := range h {
 		rHeader[strings.ToLower(k)] = h[k][0]
@@ -83,7 +81,7 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 		With("cf-ray", req.GetHeader("cf-ray")).
 		With("aws-xray", req.GetHeader("x-amzn-trace-id"))
 
-	reqLog.Error(fmt.Sprintf("error_3 - %s", "opa"))
+	reqLog.Error(fmt.Sprintf("error_3 - %s", "opa")) */
 
 	//c.accessError(kong, rsl.Status)
 }
