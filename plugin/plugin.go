@@ -73,9 +73,14 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	}
 	kong.Log.Err(fmt.Sprintf("by_header_kong_4, trace_id: %s", traceid))
 
-	n, err := kong.Nginx.GetCtxAny("traceparent")
+	n1, err := kong.Ctx.GetSharedString("traceparent")
 	if err == nil {
-		kong.Log.Err(fmt.Sprintf("by_ctx_kong_4, trace_id: %s", n))
+		kong.Log.Err(fmt.Sprintf("by_shared_kong_4, trace_id: %s", n1))
+	}
+
+	n2, err := kong.Nginx.GetCtxAny("tracecontext")
+	if err == nil {
+		kong.Log.Err(fmt.Sprintf("by_ctx_kong_4, trace_id: %s", n2))
 	}
 
 	//kong.Log.Err("error_kong_3, a: b, f: d")
