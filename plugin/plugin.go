@@ -112,6 +112,8 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 
 	kong.Log.Err(fmt.Sprintf("by_header_kong_5, namespace: %s, trace_id: %s", "sample-ddtrace", traceid))
 
+	c.log.With("trace_id", traceid).Info("logando o trace_id")
+
 	/* n1, err := kong.Ctx.GetSharedString("traceparent")
 	if err == nil {
 		kong.Log.Err(fmt.Sprintf("by_shared_kong_5, trace_id: {\"w3c\":\"%s\"}", n1))
