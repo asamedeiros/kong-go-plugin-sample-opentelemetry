@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/log/global"
 	_log "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.uber.org/zap"
 
 	"github.com/Kong/go-pdk/server"
