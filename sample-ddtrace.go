@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/log/global"
+	"go.opentelemetry.io/otel/propagation"
 	_log "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -56,6 +57,8 @@ func newTracerProvider(rsc *resource.Resource) (*trace.TracerProvider, tracer.Tr
 
 	// Finally, set the tracer that can be used for this package.
 	tracer := tracerProvider.Tracer("sample-ddtrace")
+
+	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	return tracerProvider, tracer
 }
