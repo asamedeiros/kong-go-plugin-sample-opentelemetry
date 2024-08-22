@@ -3,14 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/log"
 	"github.com/asamedeiros/kong-go-sample-ddtrace/plugin"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/log/global"
 	_log "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.uber.org/zap"
 
@@ -25,36 +30,57 @@ func newResource() (*resource.Resource, error) {
 		))
 }
 
-func newLoggerProvider(ctx context.Context, res *resource.Resource) (*_log.LoggerProvider, error) {
-	exporter, err := otlploghttp.New(ctx)
+func newtracerProvider(rsc *resource.Resource) *trace.TracerProvider {
+	traceExporter, err := stdouttrace.New(
+		stdouttrace.WithPrettyPrint())
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	processor := _log.NewBatchProcessor(exporter)
-	provider := _log.NewLoggerProvider(
-		_log.WithResource(res),
-		_log.WithProcessor(processor),
+
+	samplingRate := 1.0
+	p := os.Getenv("KONG_TRACING_SAMPLING_RATE")
+	if p != "" {
+		samplingRate, _ = strconv.ParseFloat(p, 64)
+	}
+
+	tracerProvider := trace.NewTracerProvider(
+		trace.WithBatcher(traceExporter),
+		trace.WithSampler(
+			trace.ParentBased(trace.TraceIDRatioBased(samplingRate)),
+		),
+		trace.WithResource(rsc),
 	)
-	return provider, nil
+
+	otel.SetTracerProvider(tracerProvider)
+
+	return tracerProvider
 }
 
-func setupLog(ctx context.Context) (*_log.LoggerProvider, log.Log) {
+func shutdownTrace(tracerProvider *trace.TracerProvider) {
+	ctx := context.Background()
+	if err := tracerProvider.Shutdown(ctx); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func newLogProvider(rsc *resource.Resource) (*_log.LoggerProvider, log.Log) {
+
+	ctx := context.Background()
 
 	// Use a working LoggerProvider implementation instead e.g. use go.opentelemetry.io/otel/sdk/log.
 	//provider := noop.NewLoggerProvider()
 
-	// Create resource.
-	res, err := newResource()
-	if err != nil {
-		panic(err)
-	}
-
 	// Create a logger provider.
 	// You can pass this instance directly when creating bridges.
-	loggerProvider, err := newLoggerProvider(ctx, res)
+	exporter, err := otlploghttp.New(ctx)
 	if err != nil {
 		panic(err)
 	}
+	processor := _log.NewBatchProcessor(exporter)
+	loggerProvider := _log.NewLoggerProvider(
+		_log.WithResource(rsc),
+		_log.WithProcessor(processor),
+	)
 
 	// Register as global logger provider so that it can be accessed global.LoggerProvider.
 	// Most log bridges use the global logger provider as default.
@@ -74,12 +100,14 @@ func setupLog(ctx context.Context) (*_log.LoggerProvider, log.Log) {
 	return loggerProvider, log.New(sugar)
 }
 
-func syncLog(ctx context.Context, loggerProvider *_log.LoggerProvider, l log.Log) {
+func shutdownLogProvider(loggerProvider *_log.LoggerProvider, l log.Log) {
 
 	l.Sync()
 	/* if err := l.Sync(); err != nil {
 		l.Warn("sync remaining logs failed: ", err.Error())
 	} */
+
+	ctx := context.Background()
 
 	if err := loggerProvider.Shutdown(ctx); err != nil {
 		fmt.Println(err)
@@ -88,13 +116,20 @@ func syncLog(ctx context.Context, loggerProvider *_log.LoggerProvider, l log.Log
 
 func main() {
 
-	ctx := context.Background()
+	// Create resource.
+	rsc, err := newResource()
+	if err != nil {
+		panic(err)
+	}
 
-	logProvider, l := setupLog(ctx)
-	defer syncLog(ctx, logProvider, l)
+	tracerProvider := newtracerProvider(rsc)
+	defer shutdownTrace(tracerProvider)
+
+	logProvider, l := newLogProvider(rsc)
+	defer shutdownLogProvider(logProvider, l)
 
 	ctor := func() interface{} { return plugin.NewPlugin(l) }
-	err := server.StartServer(ctor, plugin.Version, plugin.Priority)
+	err = server.StartServer(ctor, plugin.Version, plugin.Priority)
 	if err != nil {
 		l.Error(fmt.Errorf("embedded plugin server start error: %w", err))
 	}
