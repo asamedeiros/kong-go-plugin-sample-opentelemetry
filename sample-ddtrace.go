@@ -17,6 +17,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	tracer "go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	"github.com/Kong/go-pdk/server"
@@ -30,7 +31,7 @@ func newResource() (*resource.Resource, error) {
 		))
 }
 
-func newtracerProvider(rsc *resource.Resource) *trace.TracerProvider {
+func newTracerProvider(rsc *resource.Resource) (*trace.TracerProvider, tracer.Tracer) {
 	traceExporter, err := stdouttrace.New(
 		stdouttrace.WithPrettyPrint())
 	if err != nil {
@@ -53,7 +54,10 @@ func newtracerProvider(rsc *resource.Resource) *trace.TracerProvider {
 
 	otel.SetTracerProvider(tracerProvider)
 
-	return tracerProvider
+	// Finally, set the tracer that can be used for this package.
+	tracer := tracerProvider.Tracer("sample-ddtrace")
+
+	return tracerProvider, tracer
 }
 
 func shutdownTrace(tracerProvider *trace.TracerProvider) {
@@ -122,13 +126,13 @@ func main() {
 		panic(err)
 	}
 
-	tracerProvider := newtracerProvider(rsc)
+	tracerProvider, tracer := newTracerProvider(rsc)
 	defer shutdownTrace(tracerProvider)
 
 	logProvider, l := newLogProvider(rsc)
 	defer shutdownLogProvider(logProvider, l)
 
-	ctor := func() interface{} { return plugin.NewPlugin(l) }
+	ctor := func() interface{} { return plugin.NewPlugin(l, tracer) }
 	err = server.StartServer(ctor, plugin.Version, plugin.Priority)
 	if err != nil {
 		l.Error(fmt.Errorf("embedded plugin server start error: %w", err))
