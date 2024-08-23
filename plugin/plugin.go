@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/log"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
@@ -50,6 +52,43 @@ func NewPlugin(log log.Log, tracer trace.Tracer) Config {
 // and, before it is being proxied to the upstream service.
 func (c *pluginConfig) Access(kong *pdk.PDK) {
 
+	traceparent, err := kong.Request.GetHeader("traceparent")
+	//kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
+
+	traceid := "unknown"
+	//spanid := "unknown"
+	if traceparent != "" {
+		traceid = strings.Split(traceparent, "-")[1]
+		//spanid = strings.Split(traceparent, "-")[2]
+	}
+
+	kong.Log.Err(fmt.Sprintf("by_header_kong_5, namespace: %s, trace_id: %s", "sample-ddtrace", traceid))
+
+	//c.log.With("trace_id", traceid).Info("logando o trace_id")
+
+	/* n1, err := kong.Ctx.GetSharedString("traceparent")
+	if err == nil {
+		kong.Log.Err(fmt.Sprintf("by_shared_kong_5, trace_id: {\"w3c\":\"%s\"}", n1))
+	} */
+
+	/* n2, err := kong.Nginx.GetCtxAny("tracecontext")
+	if err == nil {
+		kong.Log.Err(fmt.Sprintf("by_ctx_kong_5, trace_id: {\"w3c\":\"%s\"}", n2))
+	} */
+
+	//kong.Log.Err("error_kong_3, a: b, f: d")
+
+	ctx := context.Background()
+
+	if err == nil {
+		// prepare carrier to set traceparent into context
+		carrier := propagation.MapCarrier{}
+		carrier.Set("traceparent", traceparent)
+		c.log.Info(fmt.Sprint(carrier))
+		// reads tracecontext from the carrier into a returned Context.
+		ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+	}
+
 	_, span := c.tracer.Start(context.Background(), "access")
 	defer span.End()
 
@@ -63,7 +102,6 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	c.log.Debug("something really cool")
 
 	// You can set context for trace correlation using zap.Any or zap.Reflect
-	ctx := context.Background()
 	c.log.Info("setting context", zap.Any("context", ctx))
 
 	/* ctx := context.Background()
@@ -105,32 +143,6 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	for k := range h {
 		rHeader[strings.ToLower(k)] = h[k][0]
 	} */
-
-	traceparent, _ := kong.Request.GetHeader("traceparent")
-	//kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
-
-	traceid := "unknown"
-	//spanid := "unknown"
-	if traceparent != "" {
-		traceid = strings.Split(traceparent, "-")[1]
-		//spanid = strings.Split(traceparent, "-")[2]
-	}
-
-	kong.Log.Err(fmt.Sprintf("by_header_kong_5, namespace: %s, trace_id: %s", "sample-ddtrace", traceid))
-
-	//c.log.With("trace_id", traceid).Info("logando o trace_id")
-
-	/* n1, err := kong.Ctx.GetSharedString("traceparent")
-	if err == nil {
-		kong.Log.Err(fmt.Sprintf("by_shared_kong_5, trace_id: {\"w3c\":\"%s\"}", n1))
-	} */
-
-	/* n2, err := kong.Nginx.GetCtxAny("tracecontext")
-	if err == nil {
-		kong.Log.Err(fmt.Sprintf("by_ctx_kong_5, trace_id: {\"w3c\":\"%s\"}", n2))
-	} */
-
-	//kong.Log.Err("error_kong_3, a: b, f: d")
 
 	//c.accessError(kong, 401)
 
