@@ -55,6 +55,17 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	traceparent, err := kong.Request.GetHeader("traceparent")
 	//kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
 
+	ctx := context.Background()
+
+	if err == nil {
+		// prepare carrier to set traceparent into context
+		carrier := propagation.MapCarrier{}
+		carrier.Set("traceparent", traceparent)
+		c.log.Info(fmt.Sprint(carrier))
+		// reads tracecontext from the carrier into a returned Context.
+		ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+	}
+
 	traceid := "unknown"
 	//spanid := "unknown"
 	if traceparent != "" {
@@ -78,18 +89,7 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 
 	//kong.Log.Err("error_kong_3, a: b, f: d")
 
-	ctx := context.Background()
-
-	if err == nil {
-		// prepare carrier to set traceparent into context
-		carrier := propagation.MapCarrier{}
-		carrier.Set("traceparent", traceparent)
-		c.log.Info(fmt.Sprint(carrier))
-		// reads tracecontext from the carrier into a returned Context.
-		ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
-	}
-
-	_, span := c.tracer.Start(context.Background(), "access")
+	_, span := c.tracer.Start(ctx, "access")
 	defer span.End()
 
 	// You can now use your logger in your code.
@@ -104,22 +104,22 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	// You can set context for trace correlation using zap.Any or zap.Reflect
 	c.log.Info("setting context", zap.Any("context", ctx))
 
-	/* ctx := context.Background()
-	tracer := otel.Tracer("example/main")
-	ctx, span := tracer.Start(ctx, "example")
-	defer span.End()
+	/*
+		tracer := otel.Tracer("example/main")
+		ctx, span := tracer.Start(ctx, "example")
+		defer span.End()
 
-	log.With("a", "b")(&log.JSONFormatter{})
+		log.With("a", "b")(&log.JSONFormatter{})
 
-	standardFields := log.Fields{
-		"dd.trace_id": convertTraceID(span.SpanContext().TraceID().String()),
-		"dd.span_id":  convertTraceID(span.SpanContext().SpanID().String()),
-		"dd.service":  "dataplane",
-		"dd.env":      "production",
-		"dd.version":  "otel2023052301",
-	}
+		standardFields := log.Fields{
+			"dd.trace_id": convertTraceID(span.SpanContext().TraceID().String()),
+			"dd.span_id":  convertTraceID(span.SpanContext().SpanID().String()),
+			"dd.service":  "dataplane",
+			"dd.env":      "production",
+			"dd.version":  "otel2023052301",
+		}
 
-	log.WithFields(standardFields).WithContext(ctx).Info("hello world") */
+		log.WithFields(standardFields).WithContext(ctx).Info("hello world") */
 
 	//_log.Printf("log_print_1")
 
