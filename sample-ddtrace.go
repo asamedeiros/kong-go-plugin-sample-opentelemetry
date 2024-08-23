@@ -32,7 +32,7 @@ func newResource() (*resource.Resource, error) {
 		))
 }
 
-func newTracerProvider(ctx context.Context, rsc *resource.Resource) (*trace.TracerProvider, tracer.Tracer) {
+func newTracerProvider(ctx context.Context, rsc *resource.Resource) (*trace.TracerProvider, tracer.Tracer, context.Context) {
 	traceExporter, err := otlptracehttp.New(ctx)
 	if err != nil {
 		panic(err)
@@ -56,10 +56,11 @@ func newTracerProvider(ctx context.Context, rsc *resource.Resource) (*trace.Trac
 
 	// Finally, set the tracer that can be used for this package.
 	tracer := tracerProvider.Tracer("sample-ddtrace")
+	tracerCtx := context.WithValue(ctx, ctxKey{}, tracer)
 
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
-	return tracerProvider, tracer
+	return tracerProvider, tracer, tracerCtx
 }
 
 func shutdownTrace(ctx context.Context, tracerProvider *trace.TracerProvider) {
@@ -68,7 +69,9 @@ func shutdownTrace(ctx context.Context, tracerProvider *trace.TracerProvider) {
 	}
 }
 
-func newLogProvider(ctx context.Context, rsc *resource.Resource) (*_log.LoggerProvider, log.Log) {
+type ctxKey struct{}
+
+func newLogProvider(ctx context.Context, rsc *resource.Resource) (*_log.LoggerProvider, log.Log, context.Context) {
 
 	// Use a working LoggerProvider implementation instead e.g. use go.opentelemetry.io/otel/sdk/log.
 	//provider := noop.NewLoggerProvider()
@@ -95,7 +98,8 @@ func newLogProvider(ctx context.Context, rsc *resource.Resource) (*_log.LoggerPr
 	// This method actually doesn't log anything on your STDOUT, as everything
 	// is shipped to a configured otel endpoint.
 	zaplogger := zap.New(otelzap.NewCore("sample-ddtrace", otelzap.WithLoggerProvider(loggerProvider)))
-	zap.ReplaceGlobals(zaplogger)
+	//zap.ReplaceGlobals(zaplogger)
+	logCtx := context.WithValue(ctx, ctxKey{}, zaplogger)
 
 	//zapLog, _ := zap.NewProduction(zap.AddCallerSkip(1))
 	//olog := otelzap.New(zapLog)
@@ -110,7 +114,7 @@ func newLogProvider(ctx context.Context, rsc *resource.Resource) (*_log.LoggerPr
 		"backoff", time.Second,
 	) */
 
-	return loggerProvider, log.New(sugar)
+	return loggerProvider, log.New(sugar), logCtx
 }
 
 func shutdownLogProvider(ctx context.Context, loggerProvider *_log.LoggerProvider, l log.Log) {
@@ -135,13 +139,13 @@ func main() {
 
 	ctx := context.Background()
 
-	tracerProvider, tracer := newTracerProvider(ctx, rsc)
-	defer shutdownTrace(ctx, tracerProvider)
+	logProvider, l, logCtx := newLogProvider(ctx, rsc)
+	defer shutdownLogProvider(logCtx, logProvider, l)
 
-	logProvider, l := newLogProvider(ctx, rsc)
-	defer shutdownLogProvider(ctx, logProvider, l)
+	tracerProvider, tracer, tracerCtx := newTracerProvider(logCtx, rsc)
+	defer shutdownTrace(tracerCtx, tracerProvider)
 
-	ctor := func() interface{} { return plugin.NewPlugin(l, tracer) }
+	ctor := func() interface{} { return plugin.NewPlugin(l, tracer, tracerCtx) }
 	err = server.StartServer(ctor, plugin.Version, plugin.Priority)
 	if err != nil {
 		l.Error(fmt.Errorf("embedded plugin server start error: %w", err))
