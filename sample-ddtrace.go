@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/log"
 	"github.com/asamedeiros/kong-go-sample-ddtrace/plugin"
@@ -27,6 +28,7 @@ func newResource() (*resource.Resource, error) {
 		resource.NewWithAttributes(semconv.SchemaURL,
 			semconv.ServiceName("sample-ddtrace-plugin"),
 			semconv.ServiceVersion("0.1.0"),
+			semconv.DeploymentEnvironment(os.Getenv("ENVIRONMENT")),
 		))
 }
 
@@ -93,10 +95,20 @@ func newLogProvider(ctx context.Context, rsc *resource.Resource) (*_log.LoggerPr
 	// This method actually doesn't log anything on your STDOUT, as everything
 	// is shipped to a configured otel endpoint.
 	zaplogger := zap.New(otelzap.NewCore("sample-ddtrace", otelzap.WithLoggerProvider(loggerProvider)))
+	zap.ReplaceGlobals(zaplogger)
 
 	//zapLog, _ := zap.NewProduction(zap.AddCallerSkip(1))
 	//olog := otelzap.New(zapLog)
 	sugar := zaplogger.Sugar()
+
+	/* _log := _otelzap.New(zap.NewExample())
+	_sugar := _log.Sugar()
+
+	_sugar.Ctx(ctx).Infow("failed to fetch URL",
+		// Structured context as loosely typed key-value pairs.
+		"attempt", 3,
+		"backoff", time.Second,
+	) */
 
 	return loggerProvider, log.New(sugar)
 }

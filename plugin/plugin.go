@@ -63,8 +63,16 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 		ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
 	}
 
+	//otel.SetLogger()
+	//global.SetLogger(nil)
+	//global.GetLogger()
+
 	span := trace.SpanFromContext(ctx)
+	//fmt.Println("AQUI: ", span.SpanContext().SpanID().String())
 	c.log.With("trace_id", span.SpanContext().SpanID().String()).Error("teste - something really cool")
+
+	/* _, span2 := c.tracer. Start(ctx, "access", span)
+	defer span2.End() */
 
 	/* _, span := c.tracer.Start(ctx, "access")
 	defer span.End() */
