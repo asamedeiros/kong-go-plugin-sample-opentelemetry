@@ -74,7 +74,9 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	}
 
 	// You can now use your logger in your code.
-	c.log.With("trace_id", traceid).Error("something really cool")
+	c.log.With("trace_id", traceid).Error("forced - something really cool")
+
+	c.log.Error("something really cool")
 
 	kong.Log.Err(fmt.Sprintf("by_header_kong_5, namespace: %s, trace_id: %s", "sample-ddtrace", traceid))
 
