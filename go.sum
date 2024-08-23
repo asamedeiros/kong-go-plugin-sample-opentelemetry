@@ -21,6 +21,10 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
+github.com/uptrace/opentelemetry-go-extra/otelutil v0.3.1 h1:Suvl9fe12MM0oi8/rcGxlGd7XawNQawU369aHzZFFec=
+github.com/uptrace/opentelemetry-go-extra/otelutil v0.3.1/go.mod h1:aiX/F5+EYbY2ed2OQEYRXzMcNGvI9pip5gW2ZtBDers=
+github.com/uptrace/opentelemetry-go-extra/otelzap v0.3.1 h1:0iCp8hx3PFhGihubKHxyOCdIlIPxzUr0VsK+rvlMGdk=
+github.com/uptrace/opentelemetry-go-extra/otelzap v0.3.1/go.mod h1:FXrjpUJDqwqofvXWG3YNxQwhg2876tUpZASj8VvOMAM=
 go.opentelemetry.io/contrib/bridges/otelzap v0.0.0-20240821201842-57e55dcf509d h1:/noIWZL4ge4SpQn/iCLs1/lGtfMAgL0AFVuqhi4gKX4=
 go.opentelemetry.io/contrib/bridges/otelzap v0.0.0-20240821201842-57e55dcf509d/go.mod h1:mzv0k5dTnSUE5/ZerXUwGiNKzcPJTakuCh6Wm1emNvU=
 go.opentelemetry.io/otel v1.28.0 h1:/SqNcYk+idO0CxKEUOtKQClMK/MimZihKYMruSMViUo=
