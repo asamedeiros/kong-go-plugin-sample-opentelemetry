@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/asamedeiros/kong-go-sample-ddtrace/pkg/log"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/Kong/go-pdk"
@@ -49,10 +51,10 @@ func NewPlugin(log log.Log, tracer trace.Tracer, tracerCtx context.Context) Conf
 // and, before it is being proxied to the upstream service.
 func (c *pluginConfig) Access(kong *pdk.PDK) {
 
-	traceparent, _ := kong.Request.GetHeader("traceparent")
-	//kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
+	ctx := c.tracerCtx
 
-	/* ctx := context.Background()
+	traceparent, err := kong.Request.GetHeader("traceparent")
+	//kong.Log.Err(fmt.Sprintf("by_header_kong_5_traceparent, traceparent: %s", traceparent))
 
 	if err == nil {
 		// prepare carrier to set traceparent into context
@@ -60,22 +62,22 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 		carrier.Set("traceparent", traceparent)
 		//c.log.Info(fmt.Sprint(carrier))
 		// reads tracecontext from the carrier into a returned Context.
-		ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
-	} */
+		ctx = otel.GetTextMapPropagator().Extract(c.tracerCtx, carrier)
+	}
 
 	//otel.SetLogger()
 	//global.SetLogger(nil)
 	//global.GetLogger()
 
-	span := trace.SpanFromContext(c.tracerCtx)
+	_, span2 := c.tracer.Start(ctx, "access")
+	defer span2.End()
+
+	span := trace.SpanFromContext(ctx)
 	//fmt.Println("AQUI: ", span.SpanContext().SpanID().String())
 	c.log.With("trace_id", span.SpanContext().SpanID().String()).Error("teste - something really cool")
 
 	/* _, span2 := c.tracer. Start(ctx, "access", span)
 	defer span2.End() */
-
-	/* _, span := c.tracer.Start(ctx, "access")
-	defer span.End() */
 
 	traceid := "unknown"
 	//spanid := "unknown"
