@@ -66,6 +66,18 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 	_, span := c.tracer.Start(ctx, "access")
 	defer span.End()
 
+	traceid := "unknown"
+	//spanid := "unknown"
+	if traceparent != "" {
+		traceid = strings.Split(traceparent, "-")[1]
+		//spanid = strings.Split(traceparent, "-")[2]
+	}
+
+	// You can now use your logger in your code.
+	c.log.With("trace_id", traceid).Error("something really cool")
+
+	kong.Log.Err(fmt.Sprintf("by_header_kong_5, namespace: %s, trace_id: %s", "sample-ddtrace", traceid))
+
 	//c.log.With("trace_id", traceid).Info("logando o trace_id")
 
 	/* n1, err := kong.Ctx.GetSharedString("traceparent")
@@ -80,26 +92,8 @@ func (c *pluginConfig) Access(kong *pdk.PDK) {
 
 	//kong.Log.Err("error_kong_3, a: b, f: d")
 
-	// You can now use your logger in your code.
-	c.log.Info("something really cool")
-
-	c.log.Error("something really cool")
-
-	c.log.Warn("something really cool")
-
-	c.log.Debug("something really cool")
-
 	// You can set context for trace correlation using zap.Any or zap.Reflect
 	//c.log.Info("setting context", zap.Any("context", ctx))
-
-	traceid := "unknown"
-	//spanid := "unknown"
-	if traceparent != "" {
-		traceid = strings.Split(traceparent, "-")[1]
-		//spanid = strings.Split(traceparent, "-")[2]
-	}
-
-	kong.Log.Err(fmt.Sprintf("by_header_kong_5, namespace: %s, trace_id: %s", "sample-ddtrace", traceid))
 
 	/*
 		tracer := otel.Tracer("example/main")
