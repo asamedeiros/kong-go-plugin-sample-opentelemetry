@@ -24,6 +24,11 @@ type Log interface {
 	ErrorWithContext(ctx context.Context, msg string)
 	Warn(msg string)
 	WarnWithContext(ctx context.Context, msg string)
+	DebugWithContext(ctx context.Context, msg string)
+	Fatal(msg string)
+	FatalWithContext(ctx context.Context, msg string)
+	Info(msg string)
+	InfoWithContext(ctx context.Context, msg string)
 }
 
 func New(zapLogger *zap.Logger) Log {
@@ -60,46 +65,26 @@ func (c *log) WarnWithContext(ctx context.Context, msg string) {
 	c.zapLogger.Warn(msg, zap.Any("context", ctx))
 }
 
-/* func (l *log) Level() zapcore.Level {
-	return l.z.Level()
+func (c *log) Debug(msg string) {
+	c.zapLogger.Debug(msg)
 }
 
-func (l *log) With(args ...interface{}) Log {
-	return New(l.z.With(args...))
+func (c *log) DebugWithContext(ctx context.Context, msg string) {
+	c.zapLogger.Debug(msg, zap.Any("context", ctx))
 }
 
-func (l *log) Debug(args ...interface{}) {
-	l.z.Debug(args...)
+func (c *log) Fatal(msg string) {
+	c.zapLogger.Fatal(msg)
 }
 
-func (l *log) Debugf(template string, args ...interface{}) {
-	l.z.Debugf(template, args...)
+func (c *log) FatalWithContext(ctx context.Context, msg string) {
+	c.zapLogger.Fatal(msg, zap.Any("context", ctx))
 }
 
-func (l *log) Info(args ...interface{}) {
-	l.z.Info(args...)
+func (c *log) Info(msg string) {
+	c.zapLogger.Info(msg)
 }
 
-func (l *log) Infof(template string, args ...interface{}) {
-	l.z.Infof(template, args...)
+func (c *log) InfoWithContext(ctx context.Context, msg string) {
+	c.zapLogger.Info(msg, zap.Any("context", ctx))
 }
-
-func (l *log) Warn(args ...interface{}) {
-	l.z.Warn(args...)
-}
-
-func (l *log) Warnf(template string, args ...interface{}) {
-	l.z.Warnf(template, args...)
-}
-
-func (l *log) Error(args ...interface{}) {
-	l.z.Error(args...)
-}
-
-func (l *log) Errorf(template string, args ...interface{}) {
-	l.z.Errorf(template, args...)
-}
-
-func (l *log) Fatal(args ...interface{}) {
-	l.z.Fatal(args...)
-} */
