@@ -3,13 +3,12 @@ package apm
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	internalLog "github.com/asamedeiros/kong-go-sample-ddtrace/internal/log"
 	"github.com/asamedeiros/kong-go-sample-ddtrace/plugin"
-	"github.com/google/uuid"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
+	"go.opentelemetry.io/contrib/detectors/aws/ecs"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -24,17 +23,18 @@ import (
 
 var shutdowns []func()
 
-func newResource(name, version, environment string) (*resource.Resource, error) {
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = uuid.New().String()
-	}
-	return resource.Merge(resource.Default(),
-		resource.NewWithAttributes(semconv.SchemaURL,
+func newResource(ctx context.Context, name, version, environment string) (*resource.Resource, error) {
+
+	return resource.New(ctx,
+		// Use the ECS resource detector!
+		resource.WithDetectors(ecs.NewResourceDetector()),
+		// Keep the default detectors
+		resource.WithTelemetrySDK(),
+		// Add your own custom attributes to identify your application
+		resource.WithAttributes(
 			semconv.ServiceName(name),
 			semconv.ServiceVersion(version),
 			semconv.DeploymentEnvironment(environment),
-			semconv.ServiceInstanceIDKey.String(hostname),
 		))
 }
 
@@ -130,12 +130,12 @@ func configTracerProvider(ctx context.Context, l internalLog.Log, rsc *resource.
 
 func ConfigOpenTelemetry(name, version, environment string) internalLog.Log {
 
-	rsc, err := newResource(name, version, environment)
+	ctx := context.Background()
+
+	rsc, err := newResource(ctx, name, version, environment)
 	if err != nil {
 		fmt.Printf("error in plugin - failed to create resource for log provider: %s", err)
 	}
-
-	ctx := context.Background()
 
 	log, shutdownLog, err := configLog(ctx, rsc)
 	if err != nil {
