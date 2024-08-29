@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	Name     = "sample-ddtrace"
+	Name     = "kong-go-plugin-sample-ddtrace"
 	Version  = "0.2"
 	Priority = 1000
 )

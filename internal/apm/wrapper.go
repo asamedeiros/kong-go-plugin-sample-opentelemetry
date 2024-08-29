@@ -36,8 +36,11 @@ func (c *wrapperConfig) wrapper(ctx context.Context, kong *pdk.PDK) (context.Con
 		myLog = myLog.With("request.x_request_id", requestid)
 	} */
 
-	//traceparent, _ := kong.Ctx.GetSharedString("traceparent")
-	traceparent, _ := kong.Request.GetHeader("traceparent")
+	// primeiramente tenta recuperar o traceparent do contexto compartilhado (setado pelo kong-plugin-tracing-customizations)
+	traceparent, _ := kong.Ctx.GetSharedString("traceparent")
+	if traceparent == "" {
+		traceparent, _ = kong.Request.GetHeader("traceparent")
+	}
 	if traceparent != "" {
 		// prepare carrier to set traceparent into context
 		carrier := propagation.MapCarrier{}
