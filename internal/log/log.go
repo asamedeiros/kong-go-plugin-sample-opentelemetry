@@ -1,12 +1,13 @@
 package log
 
 import (
+	"context"
+
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 type Log interface {
-	Level() zapcore.Level
+	/* Level() zapcore.Level
 	Debug(args ...interface{})
 	Debugf(template string, args ...interface{})
 	Info(args ...interface{})
@@ -16,21 +17,50 @@ type Log interface {
 	Error(args ...interface{})
 	Errorf(template string, args ...interface{})
 	Fatal(args ...interface{})
-	With(args ...interface{}) Log
+	With(args ...interface{}) Log */
+	With(name, value string) Log
 	Sync() error
+	Error(msg string)
+	ErrorWithContext(ctx context.Context, msg string)
+	Warn(msg string)
+	WarnWithContext(ctx context.Context, msg string)
 }
 
-func New(z *zap.SugaredLogger) Log {
+func New(zapLogger *zap.Logger) Log {
 	return &log{
-		z: z,
+		zapLogger: zapLogger,
 	}
 }
 
 type log struct {
-	z *zap.SugaredLogger
+	zapLogger *zap.Logger
 }
 
-func (l *log) Level() zapcore.Level {
+func (c *log) With(name, value string) Log {
+	return New(c.zapLogger.With(zap.String(name, value)))
+}
+
+func (c *log) Sync() error {
+	return c.zapLogger.Sync()
+}
+
+func (c *log) Error(msg string) {
+	c.zapLogger.Error(msg)
+}
+
+func (c *log) ErrorWithContext(ctx context.Context, msg string) {
+	c.zapLogger.Error(msg, zap.Any("context", ctx))
+}
+
+func (c *log) Warn(msg string) {
+	c.zapLogger.Warn(msg)
+}
+
+func (c *log) WarnWithContext(ctx context.Context, msg string) {
+	c.zapLogger.Warn(msg, zap.Any("context", ctx))
+}
+
+/* func (l *log) Level() zapcore.Level {
 	return l.z.Level()
 }
 
@@ -72,8 +102,4 @@ func (l *log) Errorf(template string, args ...interface{}) {
 
 func (l *log) Fatal(args ...interface{}) {
 	l.z.Fatal(args...)
-}
-
-func (l *log) Sync() error {
-	return l.z.Sync()
-}
+} */
