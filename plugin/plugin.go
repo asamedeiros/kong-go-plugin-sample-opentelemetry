@@ -40,5 +40,5 @@ func (c *pluginConfig) Access(ctx context.Context, log log.Log, kong *pdk.PDK) {
 
 	log.Error("setting sample")
 
-	log.ErrorWithContext(ctx, "setting sample with context")
+	log.WithTracing(ctx).Error("setting sample with context")
 }

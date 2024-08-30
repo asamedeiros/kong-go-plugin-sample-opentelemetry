@@ -19,16 +19,12 @@ type Log interface {
 	Fatal(args ...interface{})
 	With(args ...interface{}) Log */
 	With(name, value string) Log
+	WithTracing(ctx context.Context) Log
 	Sync() error
 	Error(msg string)
-	ErrorWithContext(ctx context.Context, msg string)
 	Warn(msg string)
-	WarnWithContext(ctx context.Context, msg string)
-	DebugWithContext(ctx context.Context, msg string)
 	Fatal(msg string)
-	FatalWithContext(ctx context.Context, msg string)
 	Info(msg string)
-	InfoWithContext(ctx context.Context, msg string)
 }
 
 func New(zapLogger *zap.Logger) Log {
@@ -41,8 +37,16 @@ type log struct {
 	zapLogger *zap.Logger
 }
 
+func (c *log) with(field zap.Field) Log {
+	return New(c.zapLogger.With(field))
+}
+
 func (c *log) With(name, value string) Log {
-	return New(c.zapLogger.With(zap.String(name, value)))
+	return c.with(zap.String(name, value))
+}
+
+func (c *log) WithTracing(ctx context.Context) Log {
+	return c.with(zap.Any("context", ctx))
 }
 
 func (c *log) Sync() error {
@@ -53,38 +57,18 @@ func (c *log) Error(msg string) {
 	c.zapLogger.Error(msg)
 }
 
-func (c *log) ErrorWithContext(ctx context.Context, msg string) {
-	c.zapLogger.Error(msg, zap.Any("context", ctx))
-}
-
 func (c *log) Warn(msg string) {
 	c.zapLogger.Warn(msg)
-}
-
-func (c *log) WarnWithContext(ctx context.Context, msg string) {
-	c.zapLogger.Warn(msg, zap.Any("context", ctx))
 }
 
 func (c *log) Debug(msg string) {
 	c.zapLogger.Debug(msg)
 }
 
-func (c *log) DebugWithContext(ctx context.Context, msg string) {
-	c.zapLogger.Debug(msg, zap.Any("context", ctx))
-}
-
 func (c *log) Fatal(msg string) {
 	c.zapLogger.Fatal(msg)
 }
 
-func (c *log) FatalWithContext(ctx context.Context, msg string) {
-	c.zapLogger.Fatal(msg, zap.Any("context", ctx))
-}
-
 func (c *log) Info(msg string) {
 	c.zapLogger.Info(msg)
-}
-
-func (c *log) InfoWithContext(ctx context.Context, msg string) {
-	c.zapLogger.Info(msg, zap.Any("context", ctx))
 }
