@@ -24,7 +24,17 @@ import (
 var shutdowns []func()
 
 func newResource(ctx context.Context, name, version, environment string) (*resource.Resource, error) {
-
+	/* hostname, err := os.Hostname()
+	if err != nil {
+		hostname = uuid.New().String()
+	}
+	return resource.Merge(resource.Default(),
+	resource.NewWithAttributes(semconv.SchemaURL,
+		semconv.ServiceName(name),
+		semconv.ServiceVersion(version),
+		semconv.DeploymentEnvironment(environment),
+		semconv.ServiceInstanceIDKey.String(hostname),
+	)) */
 	return resource.New(ctx,
 		// Use the ECS resource detector!
 		resource.WithDetectors(ecs.NewResourceDetector()),
