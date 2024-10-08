@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"fmt"
 
 	"go.uber.org/zap"
 )
@@ -22,9 +23,11 @@ type Log interface {
 	WithTracing(ctx context.Context) Log
 	Sync() error
 	Error(msg string)
+	Errorf(msg string, args ...interface{})
 	Warn(msg string)
 	Fatal(msg string)
 	Info(msg string)
+	Infof(msg string, args ...interface{})
 }
 
 func New(zapLogger *zap.Logger) Log {
@@ -57,6 +60,10 @@ func (c *log) Error(msg string) {
 	c.zapLogger.Error(msg)
 }
 
+func (c *log) Errorf(msg string, args ...interface{}) {
+	c.zapLogger.Error(fmt.Sprintf(msg, args...))
+}
+
 func (c *log) Warn(msg string) {
 	c.zapLogger.Warn(msg)
 }
@@ -71,4 +78,8 @@ func (c *log) Fatal(msg string) {
 
 func (c *log) Info(msg string) {
 	c.zapLogger.Info(msg)
+}
+
+func (c *log) Infof(msg string, args ...interface{}) {
+	c.zapLogger.Info(fmt.Sprintf(msg, args...))
 }
